@@ -31,6 +31,10 @@ from labelme.widgets import LabelQListWidget
 from labelme.widgets import ToolBar
 from labelme.widgets import ZoomWidget
 
+# Zhengyu custom
+from labelme.utils import MatIO as mio
+import numpy as np
+# end of Zhengyu custom
 
 # FIXME
 # - [medium] Set max zoom value to something big enough for FitWidth/Window
@@ -247,6 +251,13 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
                           None, 'edit', 'Add point to the nearest edge',
                           enabled=False)
 
+        # custom actions added by Zhengyu
+        importPolygonMode = action('Import polygon from Mat file', self.openMatFileDialog,
+                                   None, 'objects', 'Import a polygon from a mat file',
+                                   enabled = True)
+
+        # end of custom actions
+
         undo = action('Undo', self.undoShapeEdit, shortcuts['undo'], 'undo',
                       'Undo last add and edit of shape', enabled=False)
 
@@ -361,6 +372,8 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
                 undo,
                 undoLastPoint,
                 addPoint,
+                None,
+                importPolygonMode
             ),
             onLoadActive=(
                 close,
@@ -832,6 +845,12 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
         # fix copy and delete
         self.shapeSelectionChanged(True)
 
+    # Zhengyu custom
+    def insertNewShape(self, shape):
+        self.addLabel(self.canvas.addShape(shape))
+        self.shapeSelectionChanged(True)
+    #end of Zhengyu custom
+
     def labelSelectionChanged(self):
         item = self.currentItem()
         if item and self.canvas.editing():
@@ -1276,6 +1295,39 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
             QtWidgets.QFileDialog.ShowDirsOnly |
             QtWidgets.QFileDialog.DontResolveSymlinks))
         self.importDirImages(targetDirPath)
+
+    # Zhengyu custom code
+    def openMatFileDialog(self, _value=False, dirpath=None):
+        if not self.mayContinue():
+            return
+
+        defaultOpenDirPath = dirpath if dirpath else '.'
+        if self.lastOpenDir and os.path.exists(self.lastOpenDir):
+            defaultOpenDirPath = self.lastOpenDir
+        else:
+            defaultOpenDirPath = os.path.dirname(self.filename) \
+                if self.filename else '.'
+
+        filename = QtWidgets.QFileDialog.getOpenFileName(
+            self, '%s - Open Mat file' % __appname__, defaultOpenDirPath,
+            '*.mat')
+
+        if QT5:
+            filename, _ = filename
+        filename = str(filename)
+
+        print('loading a polygon from %s' % filename)
+        # read polygon as a 2d numpy array
+        if not filename:
+            return
+        shape = mio.read(filename, 'polygon')
+        if shape is not None:
+            print('Add a polygon:')
+            print(shape)
+            self.insertNewShape(shape)
+        else:
+            print('Error: no polygon found in %s' %filename)
+    #end of Zhengyu custom code
 
     @property
     def imageList(self):

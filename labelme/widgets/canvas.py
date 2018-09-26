@@ -458,6 +458,13 @@ class Canvas(QtWidgets.QWidget):
             self.boundedShiftShape(shape)
             return shape
 
+    #Zhengyu custom
+    def addShape(self, shape):
+        print(shape.rows)
+        print(shape.cols)
+        return shape
+    #end Zhengyu custom
+
     def boundedShiftShape(self, shape):
         # Try to move in one direction, and if it fails in another.
         # Give up if both fail.
