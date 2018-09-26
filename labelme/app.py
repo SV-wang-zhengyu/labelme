@@ -847,8 +847,7 @@ class MainWindow(QtWidgets.QMainWindow, WindowMixin):
 
     # Zhengyu custom
     def insertNewShape(self, shape):
-        self.addLabel(self.canvas.addShape(shape))
-        self.shapeSelectionChanged(True)
+        self.canvas.addShape(shape)
     #end of Zhengyu custom
 
     def labelSelectionChanged(self):

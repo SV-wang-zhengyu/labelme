@@ -6,6 +6,8 @@ from labelme import QT5
 from labelme.shape import Shape
 import labelme.utils
 
+import numpy as np
+
 
 # TODO(unknown):
 # - [maybe] Find optimal epsilon value.
@@ -460,9 +462,18 @@ class Canvas(QtWidgets.QWidget):
 
     #Zhengyu custom
     def addShape(self, shape):
-        print(shape.rows)
-        print(shape.cols)
-        return shape
+        shape = np.squeeze(shape)
+        dims = np.shape(shape)
+        if dims[0] < 1 or dims[1] != 2:
+            return
+        if not self.current:
+            self.current = Shape()
+            for i in range(dims[0]):
+                x = shape[i,0]
+                y = shape[i,1]
+                # print('adding x/y=%d, %d' %(x, y))
+                self.current.addPoint(QtCore.QPoint(x, y))
+            self.finalise() # this will close the polygon, then prompt user for label
     #end Zhengyu custom
 
     def boundedShiftShape(self, shape):
